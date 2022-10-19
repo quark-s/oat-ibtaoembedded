@@ -18,7 +18,7 @@
  *
  *
  */
-use oat\ibTaoEmbedded\scripts\install\RegisteribTaoEmbedded;
+use oat\ibTaoEmbedded\scripts\install\RegisterIbTaoEmbedded;
 
 return array(
     'name' => 'ibTaoEmbedded',

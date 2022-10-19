@@ -18,7 +18,7 @@
  *
  * */
 
-namespace oat\IbTaoEmbedded\scripts\install;
+namespace oat\ibTaoEmbedded\scripts\install;
 
 use oat\taoQtiItem\model\portableElement\action\RegisterPortableElement;
 
@@ -26,9 +26,9 @@ use oat\taoQtiItem\model\portableElement\action\RegisterPortableElement;
  * Script to register the PCI "ibTaoEmbedded"
  *
  * Usage:
- * sudo -u www-data php index.php '\oat\cbaIbPci\scripts\install\RegisterCbaIbPci'
+ * sudo -u www-data php index.php '\oat\ibTaoEmbedded\scripts\install\RegisterIbTaoEmbedded'
  *
- * @package oat\cbaIbPci\scripts\install
+ * @package oat\ibTaoEmbedded\scripts\install
  */
 class RegisterIbTaoEmbedded extends RegisterPortableElement
 {

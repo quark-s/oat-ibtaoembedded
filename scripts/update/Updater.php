@@ -19,9 +19,9 @@
  *
  */
 
-namespace oat\IbTaoEmbedded\scripts\update;
+namespace oat\ibTaoEmbedded\scripts\update;
 
-use oat\IbTaoEmbedded\scripts\install\RegisterIbTaoEmbedded;
+use oat\ibTaoEmbedded\scripts\install\RegisterIbTaoEmbedded;
 
 class Updater extends \common_ext_ExtensionUpdater
 {
