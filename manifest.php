@@ -18,11 +18,11 @@
  *
  *
  */
-use oat\ibtaoembedded\scripts\install\RegisterIbTaoEmbedded;
+use oat\ibTaoEmbedded\scripts\install\RegisteribTaoEmbedded;
 
 return array(
-    'name' => 'ibtaoembedded',
-	'label' => 'Itembuilder integration',
+    'name' => 'ibTaoEmbedded',
+	'label' => 'Itembuilder integration (embedded)',
 	'description' => '',
     'license' => 'GPL-2.0',
     'version' => '0.1.5',
@@ -31,31 +31,31 @@ return array(
 	    'qtiItemPci' => '>=1.2.0',
 	    'taoQtiItem' => '>=8.5.0'
     ),
-	'managementRole' => 'http://www.tao.lu/Ontologies/generis.rdf#ibtaoembeddedManager',
+	'managementRole' => 'http://www.tao.lu/Ontologies/generis.rdf#ibTaoEmbeddedManager',
     'acl' => array(
-        array('grant', 'http://www.tao.lu/Ontologies/generis.rdf#ibtaoembeddedManager', array('ext'=>'ibtaoembedded')),
+        array('grant', 'http://www.tao.lu/Ontologies/generis.rdf#ibTaoEmbeddedManager', array('ext'=>'ibTaoEmbedded')),
     ),
     'install' => array(
         'php'	=> array(
 			RegisterIbTaoEmbedded::class
 		)
     ),
-    'update' => 'oat\\ibtaoembedded\\scripts\\update\\Updater',
+    'update' => 'oat\\ibTaoEmbedded\\scripts\\update\\Updater',
     'uninstall' => array(
     ),
     'autoload' => array (
         'psr-4' => array(
-            'oat\\ibtaoembedded\\' => dirname(__FILE__).DIRECTORY_SEPARATOR
+            'oat\\ibTaoEmbedded\\' => dirname(__FILE__).DIRECTORY_SEPARATOR
         )
     ),
     'routes' => array(
-        '/ibtaoembedded' => 'oat\\ibtaoembedded\\controller'
+        '/ibTaoEmbedded' => 'oat\\ibTaoEmbedded\\controller'
     ),
 	'constants' => array(
 	    # views directory
 	    "DIR_VIEWS" => dirname(__FILE__).DIRECTORY_SEPARATOR."views".DIRECTORY_SEPARATOR,
 
 		#BASE URL (usually the domain root)
-		'BASE_URL' => ROOT_URL.'ibtaoembedded/',
+		'BASE_URL' => ROOT_URL.'ibTaoEmbedded/',
 	)
 );

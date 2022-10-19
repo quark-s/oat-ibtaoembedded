@@ -18,7 +18,7 @@
         "GPL-2.0"
     ],
     "extra" : {
-        "tao-extension-name" : "ibtaoembedded"
+        "tao-extension-name" : "ibTaoEmbedded"
     },
     "minimum-stability" : "dev",
     "require": {
@@ -26,7 +26,7 @@
     },
     "autoload" : {
         "psr-4" : {
-            "oat\\ibtaoembedded\\" : ""
+            "oat\\ibTaoEmbedded\\" : ""
         }
     } 
 }
