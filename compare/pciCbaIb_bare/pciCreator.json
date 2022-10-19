@@ -1,0 +1,54 @@
+{
+    "typeIdentifier": "pciCbaIb",
+    "label": "Itembuilder integration",
+    "short": "Itembuilder integration",
+    "description": "Itembuilder integration.",
+    "version": "1.3.0",
+    "author": "Felix Wagner",
+    "email": "wagnerf@dipf.de",
+    "tags": [],
+    "response": {
+        "cardinality": "record"
+    },
+    "runtime" : {
+        "hook" : "./runtime/pciCbaIb.js",
+        "libraries" : [
+            "./runtime/js/jquery_2_1_1_amd.js",
+            "./runtime/js/renderer.js",
+            "./runtime/js/ajv.min.js",
+            "./runtime/js/itemManager.js"
+        ],
+        "stylesheets" : [
+            "./runtime/css/base.css",
+            "./runtime/css/pciCbaIb.css"
+        ],
+        "mediaFiles" : [
+            "./runtime/css/img/bg.png",
+            "./runtime/assets/CBA/static/js/main.9_0_0.js",
+            "./runtime/assets/CBA/static/css/main.9_0_0.css",
+            "./runtime/assets/CBA/src/pages/configurationRetriever.js",
+            "./runtime/assets/CBA/src/pages/controller.js",
+            "./runtime/assets/CBA/src/pages/emulatorPage.js",
+            "./runtime/assets/CBA/src/pages/taskPlayerReceiver.js",
+            "./runtime/assets/CBA/src/pages/taskPlayerSender.js",
+            "./runtime/assets/CBA/src/pages/emulatorPage.html",
+            "./runtime/assets/CBA/src/pages/reactRuntime.html"
+        ]
+    },
+    "creator" : {
+        "icon": "./creator/img/icon.svg",
+        "hook": "./pciCreator.js",
+        "libraries" : [
+            "./creator/tpl/markup.tpl",
+            "./creator/tpl/propertiesForm.tpl",
+            "./creator/widget/Widget.js",
+            "./creator/widget/states/Question.js",
+            "./creator/widget/states/Answer.js",
+            "./creator/widget/states/states.js",
+            "./runtime/js/itemManager.js",
+            "./runtime/js/ajv.min.js",
+            "./confDefault.json",
+            "./confSchema.json"
+        ]
+    }
+}
