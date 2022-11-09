@@ -19,11 +19,10 @@
 define(['qtiCustomInteractionContext',
         'ibTaoEmbedded/runtime/js/jquery_2_1_1_amd',
         'ibTaoEmbedded/runtime/js/renderer',
-        'ibTaoEmbedded/runtime/js/itemManager',
-        'ibTaoEmbedded/runtime/js/zipson.min',
+        // 'ibTaoConnector/runtime/js/lzstring',
         'OAT/util/event',
     ],
-    function(qtiCustomInteractionContext, $, renderer, itemMgr, zipson, event){
+    function(qtiCustomInteractionContext, $, renderer, /*LZString,*/ event){
     'use strict';
 
     var ibTaoEmbedded = {
@@ -49,176 +48,149 @@ define(['qtiCustomInteractionContext',
             this.dom = dom;
             this.config = config || {};
             this.startTime = Date.now();
-            this.itemData = _.clone(config) || null;
             this.assetManager = assetManager;
 
             this.response = new Map();
+            this.responseRaw = [];
             this.traceLogs = [];
 
+            /********** get assessment configuration to determine end of sequence (now solved via postMessage) ***********/
+            // fetch(config.url + "assessments/config.json", {
+            //     method: "GET",
+            //     cache: "no-cache",
+            //     headers: {
+            //         'Accept': 'application/json'
+            //     }                    
+            // })
+            // .then(r => r.ok ? Promise.resolve(r) : Promise.reject(new Error(r.statusText)))            
+            // .then(r => r.json())            
+            // .then(r => {
+            //     if(!!r)
+            //         this.config = Object.assign(this.config, {assessments: r});
+            // });            
+
+            /****** hide next / skip buttons (workaround for navigationLock) ******/
+            document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
+            .forEach(e => e.classList.add("hidden"));            
+
             renderer.render(this.id, this.dom, this.config, assetManager);
-            self.scaleContents();
 
             //tell the rendering engine that I am ready
             qtiCustomInteractionContext.notifyReady(this);
 
-            //listening to dynamic configuration change
-            // this.on('levelchange', function(level){
-            //     self.config.level = level;
-            //     renderer.renderChoices(self.id, self.dom, self.config);
-            // });
-
-
-            const setItemData = function(targetItem){
-                
-                if(self.itemData.item == targetItem.item && self.itemData.task == targetItem.task)
-                    return;
-
-                self.itemData = targetItem;                
-                _.assign(self.config, {
-                        item: targetItem.item,
-                        task: targetItem.task,
-                        itemIdx: targetItem.itemIdx,
-                        taskIdx: targetItem.taskIdx
-                    }
-                );                
-            }
-
-            this.on('urlchange', function(item, task){
-                let targetItem = itemMgr.getItemData(item, task);
-                if(!targetItem){
-                    return;
-                    // throw new Error("Item does not exist.")
-                }
-                setItemData(targetItem);
-                renderer.refreshSrc(self.id, self.dom, self.config, assetManager);
-                self.scaleContents();                    
-            });
-                        
-            this.on('itempropchange', function(width, height){
-                width = parseInt(width);
-                height = parseInt(height);
-                if(
-                    (self.config.width == width && self.config.height == height) || 
-                    width < 100 ||
-                    height < 100 ||
-                    width > 2560 ||
-                    height > 1600
-                ){
-                        return;
-                    // throw new Error("Dimensions out of range.")
-                }
-
-                self.config.width = width || self.config.width;
-                self.config.height = height || self.config.height;
+            window.onresize = (e) => {
                 renderer.updateIframe(self.id, self.dom, self.config);
-                self.scaleContents();
-            });
-
-
-            const stopTask = () => {
-                if ((document.getElementById("cbaframe") != null) &&
-                    (document.getElementById("cbaframe").contentWindow.flash_communicator != null)) {
-                    document.getElementById("cbaframe").contentWindow.flash_communicator.stopTask();
-                }
             };
 
+            this.on('urlchange', function(url){
+                self.config.url = url || self.config.url;
+                renderer.refreshSrc(self.id, self.dom, assetManager);
+                // self.scaleContents();
+            });
+            
+            this.on('itempropchange', function(width, height, iwidth, iheight){
+                width = parseInt(width);
+                height = parseInt(height);
+                iwidth = parseInt(iwidth);
+                iheight = parseInt(iheight);
+                if(
+                    (self.config.width == width && self.config.height == height && self.config.iwidth == iwidth && self.config.iheight == iheight) || 
+                    width < 100 ||
+                    height < 100 ||
+                    iwidth < 100 ||
+                    iheight < 100 ||
+                    width > 2560 ||
+                    height > 1600 ||
+                    iwidth > 2560 ||
+                    iheight > 1600
+                    ){
+                        return;
+                        // throw new Error("Dimensions out of range.")
+                    }
+                    
+                self.config.width = width || self.config.width;
+                self.config.height = height || self.config.height;
+                self.config.iwidth = iwidth || self.config.iwidth;
+                self.config.iheight = iheight || self.config.iheight;
+                renderer.updateIframe(self.id, self.dom, self.config);
+            });
+
+            this.on('h_alignchange', function(alignh){
+                self.config.alignh = alignh || self.config.alignh;
+                renderer.updateIframe(self.id, self.dom, self.config);
+                // self.scaleContents();
+            });
+            
             const receive = (type, data) => {
 
                 console.log("receive", type, data);
                 // console.log(1);
                 
+                const scoringResultReturn = (data) => {
+                    console.log("getScoringResultReturn", data);
+                    let results = data["result"];
+
+                    // let tmp = Object.keys(data["params"][1]["incidents"])[0];
+                    // let identifier = tmp.substring(tmp.indexOf("/item")+1).replace("/",".").replace("task=","").replace("item=","");
+
+                    
+                    /*  
+                    *   for valid indentifier characters, check:
+                    *   \vendor\qtism\qtism\qtism\common\utils\data\CharacterMap.php        
+                    *   \vendor\qtism\qtism\qtism\runtime\pci\json\Unmarshaller.php
+                    */
+
+                    let classes = [];
+                    let hits = [];
+                    
+                    for (let i of Object.keys(results)) {
+                        if (i.indexOf("hit.") >= 0 && results[i] == true)
+                            hits.push(i.split(".")[1]);
+                    }
+
+                    for (let i of Object.keys(results)) {
+                        if (i.indexOf("hitClass.") >= 0) {
+                            let hit = hits.indexOf(i.split(".")[1]);
+                            if (hit >= 0){
+                                let text = "";
+                                if(typeof results["hitText."+hits[hit]] == "string")
+                                    text = results["hitText."+hits[hit]];
+                                classes.push({ "class": results[i], "hit": hits[hit], "text": text });
+                                this.response.set(results[i] + ".hit", hits[hit]);
+                                if(text.length>0)
+                                    // this.response.set(identifier + "." + results[i] + ".hitText", text);
+                                    this.response.set(results[i] + ".hitText", text);
+                            }
+                        }
+                    }
+
+                    this.responseRaw.push(results);
+                }
+
+                const endOfSequence = () => {
+
+                    if($("[data-control='submit']").length)
+                        $("[data-control='submit']").trigger("click");
+
+                    if($("[data-control='move-end']").length)
+                        $("[data-control='move-end']").trigger("click");
+                    else if($("[data-control='move-forward']").length)
+                        $("[data-control='move-forward']").trigger("click");
+                    else if($("[data-control='next-section']").length)
+                        $("[data-control='next-section']").trigger("click");
+                }
+
                 const callbacks = {
                     
-                    "vo.ToPlayer.CBAEndTaskResponse": (data) => {
-                        console.log("vo.ToPlayer.CBAEndTaskResponse", data);
-                        let results = data["params"][0];
-
-                        let tmp = Object.keys(data["params"][1]["incidents"])[0];
-                        let identifier = tmp.substring(tmp.indexOf("/item")+1).replace("/",".").replace("task=","").replace("item=","");
-
-                        
-                        /*  
-                        *   for valid indentifier characters, check:
-                        *   \vendor\qtism\qtism\qtism\common\utils\data\CharacterMap.php        
-                        *   \vendor\qtism\qtism\qtism\runtime\pci\json\Unmarshaller.php
-                        */
-
-                        let classes = [];
-                        let hits = [];
-                        
-                        for (let i of Object.keys(results)) {
-                            if (i.indexOf("hit.") >= 0 && results[i] == true)
-                                hits.push(i.split(".")[1]);
-                        }
-
-                        for (let i of Object.keys(results)) {
-                            if (i.indexOf("hitClass.") >= 0) {
-                                let hit = hits.indexOf(i.split(".")[1]);
-                                if (hit >= 0){
-                                    let text = "";
-                                    if(typeof results["hitText."+hits[hit]] == "string")
-                                        text = results["hitText."+hits[hit]];
-                                    classes.push({ "class": results[i], "hit": hits[hit], "text": text });
-                                    // this.response.set(this.itemData.item + "." + this.itemData.task + "." + results[i], hits[hit]);
-                                    this.response.set(identifier + "." + results[i] + ".hit", hits[hit]);
-                                    if(text.length>0)
-                                        this.response.set(identifier + "." + results[i] + ".hitText", text);
-                                }
-                            }
-                        }
-                    },
-
-                    "vo.ToPlayer.EE4CBACommand": (data) => {
-                        console.log("vo.ToPlayer.EE4CBACommand", data);
-                        if(!data.params)
-                            return;
-    
-                        let targetMap = {
-                            "back": "#previous"
-                        };
-                        let target = "#next";
-                        
-                        stopTask();
-
-                        if(data.params.length > 0){
-                            if(targetMap[data.params[0]])
-                                target = targetMap[data.params[0]];
-                            
-                            let targetItem = null;
-
-                            if(target == "#next"){
-                                targetItem = itemMgr.getNext(self.config.item, self.config.task);
-                            }
-
-                            else if(target == "#previous"){
-                                targetItem = itemMgr.getPrevious(self.config.item, self.config.task);
-                            }
-
-                            if(_.isObject(targetItem)){
-                                    setItemData(targetItem);
-                                    renderer.refreshSrc(self.id, self.dom, self.config, self.assetManager);
-                                    self.scaleContents();                
-                            }
-                            //trigger next tao section
-                            else
-                            {
-                                if($("[data-control='move-forward'").length)
-                                    $("[data-control='move-forward'").trigger("click");
-                                else if($("[data-control='next-section'").length)
-                                    $("[data-control='next-section'").trigger("click");
-                            }
-                        }
-                    },
+                    "endOfSequence": endOfSequence,
+                    "getScoringResultReturn": scoringResultReturn,
+                    "getTasksStateReturn": scoringResultReturn,
                     
-                    "vo.ToPlayer.CBAEvent": (data) => {
-                        if(!!data["params"] && !!data["params"][0]){
-                            this.traceLogs.push(data["params"][0]);
+                    "traceLogTransmission": (data) => {
+                        if(!!data["traceLogData"]){
+                            this.traceLogs.push(data["traceLogData"]);
                         }
-                    },
-
-                    "vo.ToPlayer.DataTransfer": (data) => {
-                        console.log(data);
-                    }                
+                    }              
                 };
     
                 if (typeof callbacks[type] !== 'undefined') {
@@ -228,51 +200,11 @@ define(['qtiCustomInteractionContext',
     
             // listen to messages from parent frame
             window.addEventListener('message', event => {
-                receive(event.data.type, event.data);
+                let data = JSON.parse(event.data);
+                receive(data.eventType, data);
             }, false);
 
         },
-
-/*
-        getItemData: function(callback, assetManager){
-            // let _url = this.config.url + "content/items/" + this.config.item + "/"  + this.config.item + ".json";
-            let _url = assetManager.resolve('ibTaoEmbedded/runtime/assets/CBA/content/items/')+this.config.item+"/"+this.config.item+".json";
-            $.getJSON(_url, function(data) {
-                if(typeof callback == "function")
-                    callback(data);
-            });
-        },
-*/
-
-        scaleContents: function(){
-
-            if(this.itemData == null)
-                return;
-
-            let width = this.itemData.width;
-            let height = this.itemData.height;
-
-            let scale =  (this.config.width / width).toFixed(2);
-            // let content = $("#cbaframe").contents();
-            let content = $("#cbaframe");
-            // $(content).find("body>iframe")
-            $(content)
-            .css("width", "" + width)
-            .css("height", "" + height)
-            .css("transform", "scale("+scale+")")
-            .css("transform-origin", "top left");
-            
-            let scroll = "hidden";
-            if(this.config.height<(scale*height))
-                scroll = "scroll";
-
-            $("#itemwrapper")
-            .css("width", "" + this.config.width)
-            .css("height", "" + this.config.height)
-            .css("overflow-x", "hidden")
-            .css("overflow-y", scroll);
-        },
-
 
 
         /**
@@ -284,10 +216,6 @@ define(['qtiCustomInteractionContext',
          */
         setResponse : function(response){
 
-            // var $container = $(this.dom),
-            //     value = response && response.base ? parseInt(response.base.integer) : -1;
-
-            // $container.find('input[value="' + value + '"]').prop('checked', true);
         },
         /**
          * Get the response in the json format described in
@@ -298,22 +226,9 @@ define(['qtiCustomInteractionContext',
          */
         getResponse : function(interaction){
 
-            //*******  pciCreator.json *******/
-            // "response": {
-            //     "cardinality": "record",
-            //     "identifier": "RESPONSE"
-            // },
-            // "response": {
-            //     "baseType": "string",
-            //     "cardinality": "single"
-            // },            
-
-            // var $container = $(this.dom),
-            //     value = parseInt($container.find('input:checked').val()) || 0;
-            
-            // console.log(this);
-
             let _response = {};
+
+            _response['scoreRaw'] = this.responseRaw;
 
             if(this.response.size>0){
                 let score = {
@@ -324,7 +239,7 @@ define(['qtiCustomInteractionContext',
                 });
                 _response['score'] = score;
             }
-            
+
             if(this.traceLogs.length>0){
                 // _response['logs'] = zipson.stringify(this.traceLogs);
                 _response['logs'] = this.traceLogs;
@@ -335,75 +250,11 @@ define(['qtiCustomInteractionContext',
                 base : {
                     // string : JSON.stringify(['test', '123']).replace(/"/g,"'")
                     string : JSON.stringify(_response).replace(/"/g,"'")
+                    // string : LZString.compressToBase64(JSON.stringify(_response))
                 }
             }
-
-
-
-        /********* type: record  ***********
-
-            let response =  {
-                record : [
-                    // {
-                    //     name : 'response',
-                    //     base : {string : "no data"}
-                    // }                    
-                ]
-            };
-
-            if(this.response.size>0){
-                this.response.forEach((_hit, _class) => {
-                    let tmp = {};
-                    tmp[_class] = _hit;
-                    response.record.push({
-                        name : _class,
-                        base : {string : JSON.stringify(tmp)}
-                    });
-                })
-            }
-
-            if(this.traceLogs.length>0){
-                response.record.push({type: "tracelogs", zipson: zipson.stringify(this.traceLogs, true)});
-            }
-
-            */
-
-        /* 
-            pair / multiple
-
-            let response = {
-                list: {
-                    pair: [
-                    ]
-                }
-            }
-
-            if(this.response.size>0){
-                this.response.forEach((_hit, _class) => {
-                    let tmp = [];
-                    tmp.push(_class);
-                    tmp.push(_hit);
-                    response.list.pair.push(tmp);
-                })
-            }
-
-        */
-
-            // console.log(response);
-            return response;
         },
-        /**
-         * Remove the current response set in the interaction
-         * The state may not be restored at this point.
-         * 
-         * @param {Object} interaction
-         */
-        resetResponse : function(){
 
-            var $container = $(this.dom);
-
-            $container.find('input').prop('checked', false);
-        },
         /**
          * Reverse operation performed by render()
          * After this function is executed, only the inital naked markup remains 

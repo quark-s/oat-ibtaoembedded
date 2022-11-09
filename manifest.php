@@ -25,7 +25,7 @@ return array(
 	'label' => 'Itembuilder integration (embedded)',
 	'description' => '',
     'license' => 'GPL-2.0',
-    'version' => '0.1.5',
+    'version' => '0.1.0',
 	'author' => 'Open Assessment Technologies',
 	'requires' => array(
 	    'qtiItemPci' => '>=1.2.0',

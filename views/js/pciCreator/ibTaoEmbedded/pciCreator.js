@@ -27,12 +27,12 @@ define([
     var _typeIdentifier = 'ibTaoEmbedded';
 
     var ibTaoEmbeddedCreator = {
-        /**
+         /**
          * (required) Get the typeIdentifier of the custom interaction
          * 
          * @returns {String}
          */
-        getTypeIdentifier : function(){
+          getTypeIdentifier : function(){
             return _typeIdentifier;
         },
         /**
@@ -51,7 +51,9 @@ define([
          * @returns {Object}
          */
         getDefaultProperties : function(pci){
-            return itmMgr.getDefaultEntrypoint();
+            let _default = {alignh: "left", navigationLock: true};
+            let _conf = Object.assign(itmMgr.getConf(), _default);
+            return _conf;
         },
         /**
          * (optional) Callback to execute on the 
@@ -79,8 +81,6 @@ define([
         getMarkupData : function(pci, defaultData){
             defaultData.prompt = pci.data('prompt');
             defaultData.url = this.getDefaultProperties().url;
-            defaultData.item = this.getDefaultProperties().item;
-            defaultData.task = this.getDefaultProperties().task;
             return defaultData;
         }
     };

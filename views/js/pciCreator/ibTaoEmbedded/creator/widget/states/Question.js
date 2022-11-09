@@ -47,37 +47,34 @@ define([
             $form = _widget.$form,
             interaction = _widget.element,
             response = interaction.getResponseDeclaration(),
-            itemName = interaction.prop('item'),
-            entryTask = interaction.prop('task'),
-            wrapperwidth = interaction.prop('wrapperwidth'),
-            wrapperheight = interaction.prop('wrapperheight');
+            url = interaction.prop('url'),
+            width = interaction.prop('width'),
+            height = interaction.prop('height'),
+            iwidth = interaction.prop('iwidth'),
+            iheight = interaction.prop('iheight'),
+            alignh = interaction.prop('alignh'),
+            navigationLock = interaction.prop('navigationLock');
 
-        let itemData = itemMgr.getConf();
-        let items = itemData.items;
-        
-        let _getTasks = function(itm){
-            let _tmp = [];
-            for(let i in items){
-                if(items[i].name == itm){
-                    for(let j in items[i].tasks){
-                        _tmp.push(items[i].tasks[j].name);
-                    }   
-                }
-            }
-            return _tmp;
-        }
-        let tasks = _getTasks(itemName);
+            let options_alignh =
+            [
+                {label: "left", key: "left"},
+                {label: "right", key: "right"},
+                {label: "center", key: "center"}
+            ]
+            .map((e) => {
+                return e.key == alignh ? Object.assign(e, {selected: true}) : e;
+            })
 
         //render the form using the form template
         $form.html(formTpl({
             serial : response.serial,
-            // levels : levelData,
-            item: itemName,
-            task: entryTask,
-            items: items,
-            tasks: tasks,
-            wrapperwidth: wrapperwidth,
-            wrapperheight: wrapperheight
+            url: url,
+            width: width,
+            height: height,
+            iwidth: iwidth,
+            iheight: iheight,
+            alignh: options_alignh,
+            navigationLock: navigationLock
         }));
 
         //init form javascript
@@ -85,39 +82,34 @@ define([
 
         //init data change callbacks
         formElement.setChangeCallbacks($form, interaction, {
-            // url: function(interaction, value){
-            //     // console.log(interaction, value);
-            //     interaction.prop('url', value);
-            //     interaction.triggerPci('urlchange', [value, null, null]);
-            // },
-            item: function(interaction, value){
-                let tasks = _getTasks(value);
-                // console.log(tasks, value, $form);
-                let _select = $($form).find("#task");
-                if(_select.length>0 && tasks.length>0){
-                    _select.empty();
-                    for(let task of tasks){
-                        _select.append('<option value="'+task+'">'+task+'</option>');
-                    }
-                }
-                interaction.prop('item', value);
-                interaction.triggerPci('urlchange', [value, null]);
-            },
-            task: function(interaction, value){
-                console.log(interaction, value);
-                interaction.prop('task', value);
-                interaction.triggerPci('urlchange', [interaction.prop('item'), value]);
-            },
-            wrapperwidth: function(interaction, value){
+            width: function(interaction, value){
                 // console.log(interaction, value);
-                interaction.prop('wrapperwidth', value);
-                interaction.triggerPci('itempropchange', [value, null]);
+                interaction.prop('width', value);
+                interaction.triggerPci('itempropchange', [value, null, null, null]);
             },
-            wrapperheight: function(interaction, value){
+            height: function(interaction, value){
                 // console.log(interaction, value);
-                interaction.prop('wrapperheight', value);
-                interaction.triggerPci('itempropchange', [null, value]);
+                interaction.prop('height', value);
+                interaction.triggerPci('itempropchange', [null, value, null, null]);
             },
+            iwidth: function(interaction, value){
+                // console.log(interaction, value);
+                interaction.prop('iwidth', value);
+                interaction.triggerPci('itempropchange', [null, null, value, null]);
+            },
+            iheight: function(interaction, value){
+                // console.log(interaction, value);
+                interaction.prop('iheight', value);
+                interaction.triggerPci('itempropchange', [null, null, null, value]);
+            },
+            alignh: function(interaction, value){
+                // console.log(interaction, value);
+                interaction.prop('alignh', value);
+                interaction.triggerPci('h_alignchange', [value]);
+            },
+            navigationLock: function navigationLock(interaction, value) {
+                interaction.prop('navigationLock', value);
+            },                           
         });
 
     };
