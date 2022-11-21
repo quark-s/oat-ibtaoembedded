@@ -81,7 +81,7 @@ let pciZip = new AdmZip();
 pciZip.addLocalFolder(path.join(__dirname, "../../views/js/pciCreator/ibTaoEmbedded"));
 
 let outpath = fs.existsSync(argv.o) ? argv.o : "./";
-let zipfile = path.join(outpath, "ibTaoEmbedded.zip");
+let zipfile = path.join(outpath, "ibTaoSpecific.zip");
 console.log("creating "+zipfile)
 pciZip.writeZip(zipfile);
 
