@@ -1,7 +1,7 @@
 define([
-    'json!ibTaoEmbedded/confDefault.json',
-    'json!ibTaoEmbedded/confSchema.json',
-    'ibTaoEmbedded/runtime/js/ajv.min',
+    'json!ibTaoConnector/confDefault.json',
+    'json!ibTaoConnector/confSchema.json',
+    'ibTaoConnector/runtime/js/ajv.min',
     'lodash'
     ], 
     function(conf, schema, Ajv, _){

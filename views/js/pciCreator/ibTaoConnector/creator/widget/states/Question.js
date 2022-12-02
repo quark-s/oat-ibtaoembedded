@@ -22,11 +22,10 @@ define([
     'taoQtiItem/qtiCreator/widgets/helpers/formElement',
     'taoQtiItem/qtiCreator/editor/simpleContentEditableElement',
     'taoQtiItem/qtiCreator/editor/containerEditor',
-    'tpl!ibTaoEmbedded/creator/tpl/propertiesForm',
-    'ibTaoEmbedded/runtime/js/itemManager',
+    'tpl!ibTaoConnector/creator/tpl/propertiesForm',
     'lodash',
     'jquery'
-], function(stateFactory, Question, formElement, simpleEditor, containerEditor, formTpl, itemMgr, _, $){
+], function(stateFactory, Question, formElement, simpleEditor, containerEditor, formTpl, _, $){
     'use strict';
 
     
@@ -47,7 +46,6 @@ define([
             $form = _widget.$form,
             interaction = _widget.element,
             response = interaction.getResponseDeclaration(),
-            url = interaction.prop('url'),
             width = interaction.prop('width'),
             height = interaction.prop('height'),
             iwidth = interaction.prop('iwidth'),
@@ -68,7 +66,6 @@ define([
         //render the form using the form template
         $form.html(formTpl({
             serial : response.serial,
-            url: url,
             width: width,
             height: height,
             iwidth: iwidth,

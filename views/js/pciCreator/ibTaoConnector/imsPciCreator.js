@@ -18,21 +18,21 @@
  */
 define([
     'lodash',
-    'ibTaoEmbedded/creator/widget/Widget',
-    'tpl!ibTaoEmbedded/creator/tpl/markup',
-    'ibTaoEmbedded/runtime/js/itemManager'
+    'ibTaoConnector/creator/widget/Widget',
+    'tpl!ibTaoConnector/creator/tpl/markup',
+    'ibTaoConnector/runtime/js/itemManager'
 ], function(_, Widget, markupTpl, itmMgr){
     'use strict';
 
-    var _typeIdentifier = 'ibTaoEmbedded';
+    var _typeIdentifier = 'ibTaoConnector';
 
-    var ibTaoEmbeddedCreator = {
-         /**
+    var ibTaoConnectorCreator = {
+        /**
          * (required) Get the typeIdentifier of the custom interaction
          * 
          * @returns {String}
          */
-          getTypeIdentifier : function(){
+        getTypeIdentifier : function(){
             return _typeIdentifier;
         },
         /**
@@ -87,5 +87,5 @@ define([
 
     //since we assume we are in a tao context, there is no use to expose the a global object for lib registration
     //all libs should be declared here
-    return ibTaoEmbeddedCreator;
+    return ibTaoConnectorCreator;
 });

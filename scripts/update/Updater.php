@@ -19,9 +19,9 @@
  *
  */
 
-namespace oat\ibTaoEmbedded\scripts\update;
+namespace oat\ibTaoConnector\scripts\update;
 
-use oat\ibTaoEmbedded\scripts\install\RegisterIbTaoEmbedded;
+use oat\cbaIbPci\scripts\install\RegisterCbaIbPci;
 
 class Updater extends \common_ext_ExtensionUpdater
 {
@@ -36,15 +36,15 @@ class Updater extends \common_ext_ExtensionUpdater
         $this->setVersion('0.1.0');      
 
         if ($this->isVersion('0.1.0')) {
-            call_user_func(new RegisterIbTaoEmbedded(), ['0.1.0']);
+            call_user_func(new RegisterCbaIbPci(), ['0.1.0']);
             $this->setVersion('0.1.1');
         }
         if ($this->isVersion('0.1.1')) {
-            call_user_func(new RegisterIbTaoEmbedded(), ['0.1.1']);
+            call_user_func(new RegisterCbaIbPci(), ['0.1.1']);
             $this->setVersion('0.1.2');
         }
         if ($this->isVersion('0.1.2')) {
-            call_user_func(new RegisterIbTaoEmbedded(), ['0.1.2']);
+            call_user_func(new RegisterCbaIbPci(), ['0.1.2']);
             $this->setVersion('0.1.5');
         }
     }

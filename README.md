@@ -8,7 +8,7 @@ To get this extension in your TAO installation, modify your root composer.json a
     ...,
     {
        "type": "vcs",
-       "url": "https://github.com/quark-s/oat-ibtaoembedded.git"
+       "url": "https://gitlab.tba-hosting.de/fwagner/oat-ibtaoconnector.git"
     }
 ],
 
@@ -18,7 +18,7 @@ To get this extension in your TAO installation, modify your root composer.json a
 ```
 require" : {
     ...,
-    "fwagner/oat-oat-ibtaoembedded": "dev-develop"
+    "fwagner/oat-ibtaoconnector": "dev-develop"
 ],
 
 ```

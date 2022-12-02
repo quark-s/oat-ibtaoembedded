@@ -17,18 +17,23 @@
  *
  */
 define(['qtiCustomInteractionContext',
-        'ibTaoEmbedded/runtime/js/jquery_2_1_1_amd',
-        'ibTaoEmbedded/runtime/js/renderer',
-        // 'ibTaoConnector/runtime/js/lzstring',
+        'ibTaoConnector/runtime/js/jquery_2_1_1_amd',
+        'ibTaoConnector/runtime/js/renderer',
+        'ibTaoConnector/runtime/js/lzstring',
         'OAT/util/event',
+        'taoItems/assets/manager',
+        'taoItems/assets/strategies',
+        'taoQtiItem/portableElementRegistry/assetManager/portableAssetStrategy',        
     ],
-    function(qtiCustomInteractionContext, $, renderer, /*LZString,*/ event){
+    function(qtiCustomInteractionContext, $, renderer, LZString, event,  assetManagerFactory, assetStrategies, portableAssetStrategy){
     'use strict';
 
-    var ibTaoEmbedded = {
+    var ibTaoConnector = {
+
+        
         id : -1,
         getTypeIdentifier : function(){
-            return 'ibTaoEmbedded';
+            return 'ibTaoConnector';
         },
         /**
          * Render the PCI : 
@@ -36,19 +41,19 @@ define(['qtiCustomInteractionContext',
          * @param {Node} dom
          * @param {Object} config - json
          */
-        initialize : function(id, dom, config, assetManager){
-
-            console.log("-init-");
+        initialize : function(dom, config){
             var self = this;
-
+            // console.log(assetManager.resolve("ee/test/test.txt"));
+            // console.log(assetManager.resolveBy('portableElementLocation', 'ibTaoConnector/ee/test2/test.txt'));
+            console.log("-init-");
+            
             //add method on(), off() and trigger() to the current object
             event.addEventMgr(this);
-
-            this.id = id;
+            
             this.dom = dom;
             this.config = config || {};
             this.startTime = Date.now();
-            this.assetManager = assetManager;
+            this.assetManager = this.getAssetManager("/ibTaoConnector/views/js/pciCreator/ibTaoConnector/");
 
             this.response = new Map();
             this.responseRaw = [];
@@ -73,7 +78,7 @@ define(['qtiCustomInteractionContext',
             document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
             .forEach(e => e.classList.add("hidden"));            
 
-            renderer.render(this.id, this.dom, this.config, assetManager);
+            renderer.render(this.id, this.dom, this.config, this.assetManager);
 
             //tell the rendering engine that I am ready
             qtiCustomInteractionContext.notifyReady(this);
@@ -81,12 +86,6 @@ define(['qtiCustomInteractionContext',
             window.onresize = (e) => {
                 renderer.updateIframe(self.id, self.dom, self.config);
             };
-
-            this.on('urlchange', function(url){
-                self.config.url = url || self.config.url;
-                renderer.refreshSrc(self.id, self.dom, assetManager);
-                // self.scaleContents();
-            });
             
             this.on('itempropchange', function(width, height, iwidth, iheight){
                 width = parseInt(width);
@@ -206,6 +205,15 @@ define(['qtiCustomInteractionContext',
 
         },
 
+        getAssetManager: function (baseUrl) {
+            return assetManagerFactory([
+                portableAssetStrategy
+            ], {baseUrl: baseUrl || ''});
+        },        
+
+        getInstance :  function(dom, config, state){
+            this.initialize(dom, config.properties);
+        },
 
         /**
          * Programmatically set the response following the json schema described in
@@ -288,8 +296,19 @@ define(['qtiCustomInteractionContext',
          */
         getSerializedState : function(){
             return {response : this.getResponse()};
-        }
-    };
+        },
 
-    qtiCustomInteractionContext.register(ibTaoEmbedded);
+        getState : function(){
+            return {response : this.getResponse()};
+        },
+
+        /**
+         * Called by delivery engine when PCI is fully completed
+         */
+        oncompleted : function oncompleted(){
+            this.destroy();
+        }
+};
+
+    qtiCustomInteractionContext.register(ibTaoConnector);
 });

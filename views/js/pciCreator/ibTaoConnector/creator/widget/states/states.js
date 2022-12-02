@@ -19,8 +19,8 @@
 define([
     'taoQtiItem/qtiCreator/widgets/states/factory',
     'taoQtiItem/qtiCreator/widgets/interactions/customInteraction/states/states',
-    'ibTaoEmbedded/creator/widget/states/Question',
-    'ibTaoEmbedded/creator/widget/states/Answer'
+    'ibTaoConnector/creator/widget/states/Question',
+    'ibTaoConnector/creator/widget/states/Answer'
 ], function(factory, states){
     'use strict';
     return factory.createBundle(states, arguments, ['correct', 'map']);

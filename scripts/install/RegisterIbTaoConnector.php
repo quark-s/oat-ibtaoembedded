@@ -1,4 +1,5 @@
-/*
+<?php
+/**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; under version 2
@@ -15,24 +16,24 @@
  *
  * Copyright (c) 2017 (original work) Open Assessment Technologies SA;
  *
+ * */
+
+namespace oat\ibTaoConnector\scripts\install;
+
+use oat\taoQtiItem\model\portableElement\action\RegisterPortableElement;
+
+/**
+ * Script to register the PCI "ibTaoConnector"
+ *
+ * Usage:
+ * sudo -u www-data php index.php '\oat\cbaIbPci\scripts\install\RegisterIbTaoConnector'
+ *
+ * @package oat\ibTaoConnector\scripts\install
  */
-define([
-    'taoQtiItem/qtiCreator/widgets/interactions/customInteraction/Widget',
-    'ibTaoEmbedded/creator/widget/states/states'
-], function(Widget, states){
-    'use strict';
-
-    var ibTaoEmbeddedWidget = Widget.clone();
-
-    ibTaoEmbeddedWidget.initCreator = function(){
-
-        this.registerStates(states);
-
-        Widget.initCreator.call(this);
-
-        //for existing likert scale PCI, ensure that the rp template is always NONE
-        this.element.getResponseDeclaration().setTemplate('NONE');
-    };
-    
-    return ibTaoEmbeddedWidget;
-});
+class RegisterIbTaoConnector extends RegisterPortableElement
+{
+    protected function getSourceDirectory(){
+        $viewDir = \common_ext_ExtensionsManager::singleton()->getExtensionById('ibTaoConnector')->getConstant('DIR_VIEWS');
+        return $viewDir.implode(DIRECTORY_SEPARATOR, ['js', 'pciCreator', 'ibTaoConnector']);
+    }
+}

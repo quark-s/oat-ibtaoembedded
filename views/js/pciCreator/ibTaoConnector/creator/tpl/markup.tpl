@@ -1,4 +1,4 @@
-<div class="ibTaoEmbedded">
+<div class="ibTaoConnector">
     <!-- 
     <div class="prompt">{{{prompt}}}</div>
     <ul class="likert"></ul> 

@@ -1,6 +1,6 @@
 {
 
-    "name": "quark-s/oat-ibtaoembedded",
+    "name": "fwagner/oat-ibtaoconnector",
     "description" : "",
     "type" : "tao-extension",
     "authors" : [
@@ -18,7 +18,7 @@
         "GPL-2.0"
     ],
     "extra" : {
-        "tao-extension-name" : "ibTaoEmbedded"
+        "tao-extension-name" : "ibTaoConnector"
     },
     "minimum-stability" : "dev",
     "require": {
@@ -26,7 +26,7 @@
     },
     "autoload" : {
         "psr-4" : {
-            "oat\\ibTaoEmbedded\\" : ""
+            "oat\\ibTaoConnector\\" : ""
         }
     } 
 }

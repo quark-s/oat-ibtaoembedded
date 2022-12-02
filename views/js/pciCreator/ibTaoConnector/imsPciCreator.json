@@ -1,0 +1,48 @@
+{
+    "model": "IMSPCI",
+    "typeIdentifier": "ibTaoConnector",
+    "label": "Itembuilder integration",
+    "short": "Itembuilder integration (specific) (IMS)",
+    "description": "Itembuilder integration for remotely hosted items (IMS)",
+    "version": "1.5.0",
+    "author": "Felix Wagner",
+    "email": "wagnerf@dipf.de",
+    "tags": [],
+    "response": {
+        "baseType": "string",
+        "cardinality": "single",
+        "identifier": "RESPONSE"
+    },    
+    "runtime" : {
+        "hook" : "./runtime/ibTaoConnector.js",
+        "modules" : {
+            "ibTaoConnector/runtime/ibTaoConnector" : [
+            "runtime/ibTaoConnector.js"
+            ]
+        },
+        "src" : [
+            "./runtime/ibTaoConnector.js",
+            "./runtime/js/ajv.min.js",
+            "./runtime/js/itemManager.js",
+            "./runtime/js/jquery_2_1_1_amd.js",
+            "./runtime/js/lzstring.js",
+            "./runtime/js/renderer.js"           
+        ]        
+    },
+    "creator" : {
+        "icon": "./creator/img/icon.svg",
+        "hook": "./imsPciCreator.js",
+        "libraries" : [
+            "./creator/tpl/markup.tpl",
+            "./creator/tpl/propertiesForm.tpl",
+            "./creator/widget/Widget.js",
+            "./creator/widget/states/Question.js",
+            "./creator/widget/states/Answer.js",
+            "./creator/widget/states/states.js",
+            "./runtime/js/itemManager.js",
+            "./runtime/js/ajv.min.js",
+            "./confDefault.json",
+            "./confSchema.json"            
+        ]
+    }
+}
