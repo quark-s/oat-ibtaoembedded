@@ -1,7 +1,7 @@
-const fs = require("fs");
+const fs = require("fs-extra");
 const AdmZip = require("adm-zip");
 const path = require("path");
-// const replace = require("replace-in-file");
+const replace = require("replace-in-file");
 const URL = require("url").URL;
 
 const yargs = require("yargs/yargs");
@@ -13,6 +13,12 @@ const argv = yargs(hideBin(process.argv))
   .alias("i", "item")
   .nargs("i", 1)
   .describe("i", "folder containering at least one item to read information from (optional)")
+  .alias("t", "pci identifier")
+  .nargs("t", 1)
+  .describe("t", "unique identifier to be used and replaced in the pci template code (default: random characters)")
+  .alias("l", "label")
+  .nargs("l", 1)
+  .describe("l", "Label (default: Itembuilder Integration)")
   .alias("o", "output")
   .nargs("o", 1)
   .describe("o", "Output directory (default: current directory)").argv;
@@ -20,12 +26,6 @@ const argv = yargs(hideBin(process.argv))
 let item = null;
 let confFile = "../../views/js/pciCreator/ibTaoEmbedded/confDefault.json";
 let conf = JSON.parse(fs.readFileSync(confFile));
-
-//Mediafiles
-    let pciCreatorFile = "../../views/js/pciCreator/ibTaoEmbedded/pciCreator.json";
-    let pciCreator = JSON.parse(fs.readFileSync(pciCreatorFile));
-    let basepath = "../../views/js/pciCreator/ibTaoEmbedded/runtime/assets/ee";
-    let relativeRoot = "../../views/js/pciCreator/ibTaoEmbedded/";
 
     function getFileList(_path, _relativeRoot){
         let tmp = [];
@@ -41,12 +41,100 @@ let conf = JSON.parse(fs.readFileSync(confFile));
         return tmp;
     }
 
-    let files = getFileList(basepath, relativeRoot);
-    pciCreator["runtime"]["mediaFiles"] = files;
-    fs.writeFileSync(pciCreatorFile, JSON.stringify(pciCreator));
-    
-    
+	function makeid(length) {
+		var result           = '';
+		var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+		var charactersLength = characters.length;
+		for ( var i = 0; i < length; i++ ) {
+			result += characters.charAt(Math.floor(Math.random() * charactersLength));
+		}
+		return result;
+	}
 
+
+//copy to tmp
+    let relativeRoot = "../../views/js/pciCreator/ibTaoEmbedded/";
+
+    if(fs.existsSync("./tmp"))
+        fs.removeSync("./tmp");
+    fs.mkdirSync("./tmp");
+    fs.copySync(relativeRoot, "./tmp");
+
+
+// ******** replace identifier *********
+
+    let pciIdentifier = makeid(6);
+    if(
+        !!argv.t &&
+        argv.t.length > 3 &&
+        argv.t.length <= 16 &&
+        /^([a-z]|[A-Z]|_)+$/g.test(argv.t)
+    )
+        pciIdentifier = argv.t;
+
+    let dir_in = "./tmp";
+
+    try {
+        const options = {
+            from: /ibTaoEmbedded\//g,
+            // to: pciIdentifier,
+            to: pciIdentifier + "/",
+            countMatches: true,
+            files: [
+                path.join(dir_in, "pciCreator.js"),
+                path.join(dir_in, "creator", "widget", "Widget.js"),
+                path.join(dir_in, "creator", "widget", "states", "Question.js"),
+                path.join(dir_in, "creator", "widget", "states", "states.js"),
+                path.join(dir_in, "runtime", "ibTaoEmbedded.js"),
+                path.join(dir_in, "runtime", "js", "itemManager.js"),
+                path.join(dir_in, "runtime", "js", "renderer.js"),
+            ],
+        };
+        replace.sync(options);
+
+        replace.sync({
+            from: /return 'ibTaoEmbedded/,
+            to: "return '"+pciIdentifier,
+            files: [
+                path.join(dir_in, "runtime", "ibTaoEmbedded.js")                
+            ]
+        });
+
+        replace.sync({
+            from: /_typeIdentifier = 'ibTaoEmbedded/,
+            to: "_typeIdentifier = '"+pciIdentifier,
+            files: [
+                path.join(dir_in, "pciCreator.js"),
+            ]
+        });
+    }
+        catch (error) {
+        throw new Error("error replacing identifiers in pci codebase: " + error.message);
+    }
+
+    
+	
+//Mediafiles
+    let pciCreatorFile = "./tmp/pciCreator.json";
+    let pciCreator = JSON.parse(fs.readFileSync(pciCreatorFile));
+    let basepath = "./tmp/runtime/assets/ee";
+    let files = getFileList(basepath, "tmp/");
+    pciCreator["runtime"]["mediaFiles"] = files;
+	
+//Label & identifier
+    let label = null;
+    if(
+        !!argv.l &&
+        argv.l.length > 3 &&
+        argv.l.length <= 64
+    )
+        label = argv.l;
+    pciCreator["typeIdentifier"] = pciIdentifier;
+	pciCreator["label"] = !!label ? label : pciCreator["label"];
+	pciCreator["short"] = !!label ? label : pciCreator["short"];
+    fs.writeFileSync(pciCreatorFile, JSON.stringify(pciCreator));	
+    
+//item cfg
 if (!fs.existsSync(argv.i)) {
     console.error("Folder not readable: " + argv.i);
 }
@@ -78,7 +166,7 @@ if (!!item) {
 fs.writeFileSync(confFile, JSON.stringify(conf));
 
 let pciZip = new AdmZip();
-pciZip.addLocalFolder(path.join(__dirname, "../../views/js/pciCreator/ibTaoEmbedded"));
+pciZip.addLocalFolder("./tmp");
 
 let outpath = fs.existsSync(argv.o) ? argv.o : "./";
 let zipfile = path.join(outpath, "ibTaoSpecific.zip");
