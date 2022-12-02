@@ -13,9 +13,12 @@ const argv = yargs(hideBin(process.argv))
   .alias("i", "item")
   .nargs("i", 1)
   .describe("i", "folder containering at least one item to read information from (optional)")
-  .alias("d", "pci identifier")
-  .nargs("d", 1)
-  .describe("d", "unique identifier to be used and replaced in the pci template code (default: random characters)")
+  .alias("t", "pci identifier")
+  .nargs("t", 1)
+  .describe("t", "unique identifier to be used and replaced in the pci template code (default: random characters)")
+  .alias("l", "label")
+  .nargs("l", 1)
+  .describe("l", "Label (default: Itembuilder Integration)")  
   .alias("o", "output")
   .nargs("o", 1)
   .describe("o", "Output directory (default: current directory)").argv;
@@ -23,7 +26,6 @@ const argv = yargs(hideBin(process.argv))
 let item = null;
 let confFile = "../../views/js/pciCreator/ibTaoConnector/confDefault.json";
 let conf = JSON.parse(fs.readFileSync(confFile));
-
 
 function getFileList(_path, _relativeRoot){
     let tmp = [];
@@ -62,12 +64,12 @@ function makeid(length) {
 
     let pciIdentifier = makeid(6);
     if(
-        !!argv.d &&
-        argv.d.length > 3 &&
-        argv.d.length <= 16 &&
-        /^([a-z]|[A-Z]|_)+$/g.test(argv.d)
+        !!argv.t &&
+        argv.t.length > 3 &&
+        argv.t.length <= 16 &&
+        /^([a-z]|[A-Z]|_)+$/g.test(argv.t)
     )
-        pciIdentifier = argv.d;
+        pciIdentifier = argv.t;
 
     let dir_in = "./tmp";
 
@@ -115,9 +117,20 @@ function makeid(length) {
     let pciCreator = JSON.parse(fs.readFileSync(pciCreatorFile));
     let basepath = "./tmp/runtime/assets/ee";
     let files = getFileList(basepath, "tmp/");
-
     pciCreator["runtime"]["src"] = pciCreator["runtime"]["src"].concat(files);
+
+//Label & identifier
+    let label = "";
+    if(
+        !!argv.l &&
+        argv.l.length > 3 &&
+        argv.l.length <= 64
+    )
+        label = argv.l;
+
     pciCreator["typeIdentifier"] = pciIdentifier;
+    pciCreator["label"] = !!label ? label : pciCreator["label"];
+    pciCreator["short"] = !!label ? label : pciCreator["short"];
     fs.writeFileSync(pciCreatorFile, JSON.stringify(pciCreator));
 
     
