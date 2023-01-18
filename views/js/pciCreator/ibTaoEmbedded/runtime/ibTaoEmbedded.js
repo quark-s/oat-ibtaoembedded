@@ -19,10 +19,10 @@
 define(['qtiCustomInteractionContext',
         'ibTaoEmbedded/runtime/js/jquery_2_1_1_amd',
         'ibTaoEmbedded/runtime/js/renderer',
-        // 'ibTaoConnector/runtime/js/lzstring',
+        'ibTaoConnector/runtime/js/lzstring',
         'OAT/util/event',
     ],
-    function(qtiCustomInteractionContext, $, renderer, /*LZString,*/ event){
+    function(qtiCustomInteractionContext, $, renderer, LZString, event){
     'use strict';
 
     var ibTaoEmbedded = {
@@ -249,8 +249,8 @@ define(['qtiCustomInteractionContext',
             return  {
                 base : {
                     // string : JSON.stringify(['test', '123']).replace(/"/g,"'")
-                    string : JSON.stringify(_response).replace(/"/g,"'")
-                    // string : LZString.compressToBase64(JSON.stringify(_response))
+                    // string : JSON.stringify(_response).replace(/"/g,"'")
+                    string : LZString.compressToBase64(JSON.stringify(_response))
                 }
             }
         },
