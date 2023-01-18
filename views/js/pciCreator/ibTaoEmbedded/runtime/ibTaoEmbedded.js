@@ -246,6 +246,9 @@ define(['qtiCustomInteractionContext',
             }
 
 
+            if(!_response['score'] && !_response['logs'])
+                return { base: null };            
+
             return  {
                 base : {
                     // string : JSON.stringify(['test', '123']).replace(/"/g,"'")
