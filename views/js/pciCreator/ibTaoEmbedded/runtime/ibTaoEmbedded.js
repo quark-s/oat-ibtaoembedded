@@ -19,8 +19,8 @@
 define(['qtiCustomInteractionContext',
         'ibTaoEmbedded/runtime/js/jquery_2_1_1_amd',
         'ibTaoEmbedded/runtime/js/renderer',
-        'ibTaoConnector/runtime/js/lzstring',
-        'OAT/util/event',
+        'ibTaoEmbedded/runtime/js/lzstring',
+        'OAT/util/event'
     ],
     function(qtiCustomInteractionContext, $, renderer, LZString, event){
     'use strict';
