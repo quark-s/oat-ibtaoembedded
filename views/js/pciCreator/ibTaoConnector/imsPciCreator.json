@@ -3,7 +3,7 @@
     "typeIdentifier": "ibTaoConnector",
     "label": "Itembuilder integration",
     "short": "Itembuilder integration (specific) (IMS)",
-    "description": "Itembuilder integration for remotely hosted items (IMS)",
+    "description": "Itembuilder integration (specific) (IMS))",
     "version": "2.0.0",
     "author": "Felix Wagner",
     "email": "wagnerf@dipf.de",
