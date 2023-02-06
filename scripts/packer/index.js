@@ -23,10 +23,6 @@ const argv = yargs(hideBin(process.argv))
   .nargs("o", 1)
   .describe("o", "Output directory (default: current directory)").argv;
 
-let item = null;
-let confFile = "../../views/js/pciCreator/ibTaoConnector/confDefault.json";
-let conf = JSON.parse(fs.readFileSync(confFile));
-
 function getFileList(_path, _relativeRoot){
     let tmp = [];
     fs.readdirSync(_path, ).forEach(f => {
@@ -59,6 +55,9 @@ function makeid(length) {
     fs.mkdirSync("./tmp");
     fs.copySync(relativeRoot, "./tmp");
 
+    let item = null;
+    let confFile = "./tmp/confDefault.json";
+    let conf = JSON.parse(fs.readFileSync(confFile));
 
 // ******** replace identifier *********
 

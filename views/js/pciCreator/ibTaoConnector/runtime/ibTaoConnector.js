@@ -256,12 +256,14 @@ define(['qtiCustomInteractionContext',
                 _response['logs'] = this.traceLogs;
             }
 
+            if(!_response['score'] && !_response['logs'])
+                return { base: null };            
 
             return  {
                 base : {
                     // string : JSON.stringify(['test', '123']).replace(/"/g,"'")
-                    string : JSON.stringify(_response).replace(/"/g,"'")
-                    // string : LZString.compressToBase64(JSON.stringify(_response))
+                    // string : JSON.stringify(_response).replace(/"/g,"'"),
+                    string : LZString.compressToBase64(JSON.stringify(_response))
                 }
             }
         },
