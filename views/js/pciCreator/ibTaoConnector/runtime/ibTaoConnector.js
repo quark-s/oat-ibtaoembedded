@@ -199,6 +199,8 @@ define(['qtiCustomInteractionContext',
     
             // listen to messages from parent frame
             window.addEventListener('message', event => {
+				if(typeof event?.data != "string")
+					return;
                 let data = JSON.parse(event.data);
                 receive(data.eventType, data);
             }, false);
@@ -213,6 +215,7 @@ define(['qtiCustomInteractionContext',
 
         getInstance :  function(dom, config, state){
             this.initialize(dom, config.properties);
+            config.onready(this);
         },
 
         /**
