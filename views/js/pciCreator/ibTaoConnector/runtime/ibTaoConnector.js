@@ -75,8 +75,10 @@ define(['qtiCustomInteractionContext',
             // });            
 
             /****** hide next / skip buttons (workaround for navigationLock) ******/
-            document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
-            .forEach(e => e.classList.add("hidden"));            
+			if(this.config?.navigationLock){
+				document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
+				.forEach(e => e.classList.add("hidden"));
+			}           
 
             renderer.render(this.id, this.dom, this.config, this.assetManager);
 
@@ -167,19 +169,20 @@ define(['qtiCustomInteractionContext',
                 }
 
                 const endOfSequence = () => {
-                    
-                    document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
-                    .forEach(e => e.classList.remove("hidden"));
+                    if(this.config?.navigationLock){
+						document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
+						.forEach(e => e.classList.remove("hidden"));
 
-                    if($("[data-control='submit']").length)
-                        $("[data-control='submit']").trigger("click");
+						if($("[data-control='submit']").length)
+							$("[data-control='submit']").trigger("click");
 
-                    if($("[data-control='move-end']").length)
-                        $("[data-control='move-end']").trigger("click");
-                    else if($("[data-control='move-forward']").length)
-                        $("[data-control='move-forward']").trigger("click");
-                    else if($("[data-control='next-section']").length)
-                        $("[data-control='next-section']").trigger("click");
+						if($("[data-control='move-end']").length)
+							$("[data-control='move-end']").trigger("click");
+						else if($("[data-control='move-forward']").length)
+							$("[data-control='move-forward']").trigger("click");
+						else if($("[data-control='next-section']").length)
+							$("[data-control='next-section']").trigger("click");
+					}
                 }
 
                 const callbacks = {
