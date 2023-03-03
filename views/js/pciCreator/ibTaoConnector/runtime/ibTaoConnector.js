@@ -317,6 +317,8 @@ define(['qtiCustomInteractionContext',
          * Called by delivery engine when PCI is fully completed
          */
         oncompleted : function oncompleted(){
+            if(!!document.querySelector("section.content-wrapper").style)
+                document.querySelector("section.content-wrapper").style.overflow = "auto";            
             this.destroy();
         }
 };
