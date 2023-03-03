@@ -129,6 +129,10 @@ define(['qtiCustomInteractionContext',
                 
                 const scoringResultReturn = (data) => {
                     console.log("getScoringResultReturn", data);
+
+                    if(!data || !data["result"])
+                        return;
+
                     let results = data["result"];
 
                     // let tmp = Object.keys(data["params"][1]["incidents"])[0];
