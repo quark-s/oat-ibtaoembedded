@@ -70,8 +70,10 @@ define(['qtiCustomInteractionContext',
             // });            
 
             /****** hide next / skip buttons (workaround for navigationLock) ******/
-            document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
-            .forEach(e => e.classList.add("hidden"));            
+			if(this.config?.navigationLock){
+				document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
+				.forEach(e => e.classList.add("hidden"));
+			}       
 
             renderer.render(this.id, this.dom, this.config, assetManager);
 
@@ -127,6 +129,10 @@ define(['qtiCustomInteractionContext',
                 // console.log(1);
                 
                 const scoringResultReturn = (data) => {
+
+                    if(!data || !data["result"])
+                        return;
+
                     console.log("getScoringResultReturn", data);
                     let results = data["result"];
 
@@ -169,15 +175,17 @@ define(['qtiCustomInteractionContext',
 
                 const endOfSequence = () => {
 
-                    if($("[data-control='submit']").length)
-                        $("[data-control='submit']").trigger("click");
+                    if(this.config?.navigationLock){
+                        if($("[data-control='submit']").length)
+                            $("[data-control='submit']").trigger("click");
 
-                    if($("[data-control='move-end']").length)
-                        $("[data-control='move-end']").trigger("click");
-                    else if($("[data-control='move-forward']").length)
-                        $("[data-control='move-forward']").trigger("click");
-                    else if($("[data-control='next-section']").length)
-                        $("[data-control='next-section']").trigger("click");
+                        if($("[data-control='move-end']").length)
+                            $("[data-control='move-end']").trigger("click");
+                        else if($("[data-control='move-forward']").length)
+                            $("[data-control='move-forward']").trigger("click");
+                        else if($("[data-control='next-section']").length)
+                            $("[data-control='next-section']").trigger("click");
+                    }
                 }
 
                 const callbacks = {
@@ -268,7 +276,8 @@ define(['qtiCustomInteractionContext',
          * @param {Object} interaction
          */
         destroy : function(){
-
+            if(!!document.querySelector("section.content-wrapper").style)
+                document.querySelector("section.content-wrapper").style.overflow = "auto";    
             var $container = $(this.dom);
             $container.off().empty();
         },
