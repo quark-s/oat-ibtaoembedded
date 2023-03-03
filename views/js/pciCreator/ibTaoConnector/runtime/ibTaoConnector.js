@@ -249,7 +249,7 @@ define(['qtiCustomInteractionContext',
 
             let _response = {};
 
-            _response['scoreRaw'] = this.responseRaw;
+            // _response['scoreRaw'] = this.responseRaw;
 
             if(this.response.size>0){
                 let score = {
