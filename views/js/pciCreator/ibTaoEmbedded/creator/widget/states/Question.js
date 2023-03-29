@@ -53,7 +53,8 @@ define([
             iwidth = interaction.prop('iwidth'),
             iheight = interaction.prop('iheight'),
             alignh = interaction.prop('alignh'),
-            navigationLock = interaction.prop('navigationLock');
+            navigationLock = interaction.prop('navigationLock'),
+            fullscreen = interaction.prop('fullscreen');
 
             let options_alignh =
             [
@@ -74,7 +75,8 @@ define([
             iwidth: iwidth,
             iheight: iheight,
             alignh: options_alignh,
-            navigationLock: navigationLock
+            navigationLock: navigationLock,
+            fullscreen: fullscreen
         }));
 
         //init form javascript
@@ -109,7 +111,11 @@ define([
             },
             navigationLock: function navigationLock(interaction, value) {
                 interaction.prop('navigationLock', value);
-            },                           
+            },
+            fullscreen: function navigationLock(interaction, value) {
+                interaction.prop('fullscreen', value);
+                interaction.triggerPci('fullscreenchange', [value]);
+            },             
         });
 
     };
