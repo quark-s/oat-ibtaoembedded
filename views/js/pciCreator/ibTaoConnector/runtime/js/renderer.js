@@ -141,7 +141,7 @@ define(['ibTaoConnector/runtime/js/jquery_2_1_1_amd', 'OAT/util/html'], function
     
     function refreshSrc(id, $container, assetManager){
         let _url = assetManager.resolve('ibTaoConnector/runtime/assets/ee/index.html');
-        $container.find("#cbaframe").attr("src", _url);
+        $container.find(".cbaframe").attr("src", _url);
     }
 
     return {
