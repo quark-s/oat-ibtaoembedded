@@ -110,6 +110,7 @@ define(['qtiCustomInteractionContext',
                     this.dom = dom;
                     this.config = config || {};
                     this.startTime = Date.now();
+                    this.assetManager = this.getAssetManager("/ibTaoConnector/views/js/pciCreator/ibTaoConnector/");
 
                     this.response = new Map();
                     this.responseRaw = [];
@@ -141,7 +142,7 @@ define(['qtiCustomInteractionContext',
                         .forEach(e => e.classList.add("hidden"));
                     }
 
-                    renderer.render(this.id, this.dom, this.config);
+                    renderer.render(this.id, this.dom, this.config, this.assetManager);
 
                     //tell the rendering engine that I am ready
                     qtiCustomInteractionContext.notifyReady(this);
@@ -171,12 +172,6 @@ define(['qtiCustomInteractionContext',
                     // };
 
 
-                    this.on('urlchange', function(url){
-                        self.config.url = url || self.config.url;
-                        renderer.refreshSrc(self.id, self.dom, url);
-                        // self.scaleContents();
-                    });
-                    
                     this.on('itempropchange', function(width, height, iwidth, iheight){
                         width = parseInt(width);
                         height = parseInt(height);
@@ -312,6 +307,12 @@ define(['qtiCustomInteractionContext',
                         receive(data.eventType, data);
                     }, false);
                 },
+
+                getAssetManager: function (baseUrl) {
+                    return assetManagerFactory([
+                        portableAssetStrategy
+                    ], {baseUrl: baseUrl || ''});
+                },                 
 
                 getInstance : function(dom, config, state){
                     this.initialize($(dom), config.properties);
