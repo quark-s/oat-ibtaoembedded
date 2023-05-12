@@ -28,276 +28,297 @@ define(['qtiCustomInteractionContext',
     function(qtiCustomInteractionContext, $, renderer, LZString, event,  assetManagerFactory, assetStrategies, portableAssetStrategy){
     'use strict';
 
+            var pciInstance =  {
 
-    function ibTaoConnector(dom, config) {
-        
-            this.getResponse = function() {
-                let _response = {};
+                getTypeIdentifier : function(){
+                    return 'ibTaoConnector';
+                },
 
-                // _response['scoreRaw'] = this.responseRaw;
-    
-                if(this.response.size>0){
-                    let score = {
-                        hits: {}
-                    }
-                    this.response.forEach((_hit, _class) => {
-                        score.hits[_class] = _hit
-                    });
-                    _response['score'] = score;
-                }
-    
-                if(this.traceLogs.length>0){
-                    // _response['logs'] = zipson.stringify(this.traceLogs);
-                    _response['logs'] = this.traceLogs;
-                }
-    
-                if(!_response['score'] && !_response['logs'])
-                    return { base: null };
-    
-                return  {
-                    base : {
-                        // string : JSON.stringify(['test', '123']).replace(/"/g,"'")
-                        // string : JSON.stringify(_response).replace(/"/g,"'")
-                        string : LZString.compressToBase64(JSON.stringify(_response))
-                    }
-                }
-            }
+                destroy : function(){
+                    var $container = $(this.dom);
+                    $container.off().empty();
+                },
 
-            this.oncompleted = function(){
-                if(!!document.querySelector("section.content-wrapper").style)
-                    document.querySelector("section.content-wrapper").style.overflow = "auto";            
-                var $container = $(this.dom);
-                $container.off().empty();                
-            }
+                off : function(){
+                    this.destroy();
+                },
 
-            this.off = this.oncompleted;
+                getSerializedState : function(){
+                    return {response : this.getResponse()};
+                },
 
-            console.log("-init-");
-            var self = this;
-            
-            //add method on(), off() and trigger() to the current object
-            event.addEventMgr(this);
-            
-            this.dom = dom;
-            this.config = config || {};
-            this.startTime = Date.now();
+                getState : function(){
+                    return {response : this.getResponse()};
+                },
 
-            this.response = new Map();
-            this.responseRaw = [];
-            this.traceLogs = [];
-            this.iframe = null;
+                /**
+                 * Called by delivery engine when PCI is fully completed
+                 */
+                oncompleted : function oncompleted(){
+                    this.destroy();
+                },
 
-            let _iframe = this.dom.find("iframe");
-            if(_iframe.length>0)
-                this.iframe = _iframe[0];
+                getResponse : function() {
+                    let _response = {};
 
-            /********** get assessment configuration to determine end of sequence (now solved via postMessage) ***********/
-            // fetch(config.url + "assessments/config.json", {
-            //     method: "GET",
-            //     cache: "no-cache",
-            //     headers: {
-            //         'Accept': 'application/json'
-            //     }                    
-            // })
-            // .then(r => r.ok ? Promise.resolve(r) : Promise.reject(new Error(r.statusText)))            
-            // .then(r => r.json())            
-            // .then(r => {
-            //     if(!!r)
-            //         this.config = Object.assign(this.config, {assessments: r});
-            // });            
+                    // _response['scoreRaw'] = this.responseRaw;
 
-            /****** hide next / skip buttons (workaround for navigationLock) ******/
-			if(this.config?.navigationLock){
-				document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
-				.forEach(e => e.classList.add("hidden"));
-			}           
-
-            renderer.render(this.id, this.dom, this.config);
-
-            //tell the rendering engine that I am ready
-            qtiCustomInteractionContext.notifyReady(this);
-
-            window.addEventListener('resize', e => {
-                if(e.target == window && !self.config.fullscreen)
-                    return;
-                renderer.updateIframe(self.id, self.dom, self.config);
-            });
-
-            if(typeof ResizeObserver == "function"){
-                const resizeObserver = new ResizeObserver((entries) => {
-                    // We wrap it in requestAnimationFrame to avoid this error - ResizeObserver loop limit exceeded
-                    window.requestAnimationFrame(() => {
-                        if (!Array.isArray(entries) || !entries.length) {
-                            return;
+                    if(this.response.size>0){
+                        let score = {
+                            hits: {}
                         }
-                        renderer.updateIframe(self.id, self.dom, self.config);
-                    });                    
-                    // renderer.updateIframe(self.id, self.dom, self.config);
-                });
-                resizeObserver.observe(this.dom[0]);
-            }
-
-            // window.onresize = e => {
-            //     renderer.updateIframe(self.id, self.dom, self.config);
-            // };
-
-
-            this.on('urlchange', function(url){
-                self.config.url = url || self.config.url;
-                renderer.refreshSrc(self.id, self.dom, url);
-                // self.scaleContents();
-            });
-            
-            this.on('itempropchange', function(width, height, iwidth, iheight){
-                width = parseInt(width);
-                height = parseInt(height);
-                iwidth = parseInt(iwidth);
-                iheight = parseInt(iheight);
-                if(
-                    (self.config.width == width && self.config.height == height && self.config.iwidth == iwidth && self.config.iheight == iheight) || 
-                    width < 100 ||
-                    height < 100 ||
-                    iwidth < 100 ||
-                    iheight < 100 ||
-                    width > 2560 ||
-                    height > 1600 ||
-                    iwidth > 2560 ||
-                    iheight > 1600
-                    ){
-                        return;
-                        // throw new Error("Dimensions out of range.")
-                    }
-                    
-                self.config.width = width || self.config.width;
-                self.config.height = height || self.config.height;
-                self.config.iwidth = iwidth || self.config.iwidth;
-                self.config.iheight = iheight || self.config.iheight;
-                renderer.updateIframe(self.id, self.dom, self.config);
-            });
-
-            this.on('h_alignchange', function(alignh){
-                self.config.alignh = alignh || self.config.alignh;
-                renderer.updateIframe(self.id, self.dom, self.config);
-                // self.scaleContents();
-            });
-            
-            this.on('fullscreenchange', function(value){
-                self.config.fullscreen = value ? true : false;
-                renderer.updateIframe(self.id, self.dom, self.config);
-            });
-
-
-            const receive = (type, data) => {
-
-                console.log("receive", type, data);
-                // console.log(1);
-                
-                const scoringResultReturn = (data) => {
-
-                    if(!data || !data["result"])
-                        return;
-
-                    console.log("getScoringResultReturn", data);
-                    let results = data["result"];
-
-                    // let tmp = Object.keys(data["params"][1]["incidents"])[0];
-                    // let identifier = tmp.substring(tmp.indexOf("/item")+1).replace("/",".").replace("task=","").replace("item=","");
-
-                    
-                    /*  
-                    *   for valid indentifier characters, check:
-                    *   \vendor\qtism\qtism\qtism\common\utils\data\CharacterMap.php        
-                    *   \vendor\qtism\qtism\qtism\runtime\pci\json\Unmarshaller.php
-                    */
-
-                    let classes = [];
-                    let hits = [];
-                    
-                    for (let i of Object.keys(results)) {
-                        if (i.indexOf("hit.") >= 0 && results[i] == true)
-                            hits.push(i.split(".")[1]);
+                        this.response.forEach((_hit, _class) => {
+                            score.hits[_class] = _hit
+                        });
+                        _response['score'] = score;
                     }
 
-                    for (let i of Object.keys(results)) {
-                        if (i.indexOf("hitClass.") >= 0) {
-                            let hit = hits.indexOf(i.split(".")[1]);
-                            if (hit >= 0){
-                                let text = "";
-                                if(typeof results["hitText."+hits[hit]] == "string")
-                                    text = results["hitText."+hits[hit]];
-                                classes.push({ "class": results[i], "hit": hits[hit], "text": text });
-                                this.response.set(results[i] + ".hit", hits[hit]);
-                                if(text.length>0)
-                                    // this.response.set(identifier + "." + results[i] + ".hitText", text);
-                                    this.response.set(results[i] + ".hitText", text);
-                            }
+                    if(this.traceLogs.length>0){
+                        // _response['logs'] = zipson.stringify(this.traceLogs);
+                        _response['logs'] = this.traceLogs;
+                    }
+
+                    if(!_response['score'] && !_response['logs'])
+                        return { base: null };
+
+                    return  {
+                        base : {
+                            // string : JSON.stringify(['test', '123']).replace(/"/g,"'")
+                            // string : JSON.stringify(_response).replace(/"/g,"'")
+                            string : LZString.compressToBase64(JSON.stringify(_response))
                         }
                     }
+                },
 
-                    this.responseRaw.push(results);
-                }
+                oncompleted : function(){
+                    if(!!document.querySelector("section.content-wrapper").style)
+                        document.querySelector("section.content-wrapper").style.overflow = "auto";            
+                    var $container = $(this.dom);
+                    $container.off().empty();                
+                },
 
-                const endOfSequence = () => {
-                    
+                initialize : function(dom, config){
+
+                    this.off = this.oncompleted;
+
+                    console.log("-init-");
+                    var self = this;
+
+                    //add method on(), off() and trigger() to the current object
+                    event.addEventMgr(this);
+
+                    this.dom = dom;
+                    this.config = config || {};
+                    this.startTime = Date.now();
+
+                    this.response = new Map();
+                    this.responseRaw = [];
+                    this.traceLogs = [];
+                    this.iframe = null;
+
+                    let _iframe = this.dom.find("iframe");
+                    if(_iframe.length>0)
+                        this.iframe = _iframe[0];
+
+                    /********** get assessment configuration to determine end of sequence (now solved via postMessage) ***********/
+                    // fetch(config.url + "assessments/config.json", {
+                    //     method: "GET",
+                    //     cache: "no-cache",
+                    //     headers: {
+                    //         'Accept': 'application/json'
+                    //     }                    
+                    // })
+                    // .then(r => r.ok ? Promise.resolve(r) : Promise.reject(new Error(r.statusText)))            
+                    // .then(r => r.json())            
+                    // .then(r => {
+                    //     if(!!r)
+                    //         this.config = Object.assign(this.config, {assessments: r});
+                    // });            
+
+                    /****** hide next / skip buttons (workaround for navigationLock) ******/
                     if(this.config?.navigationLock){
+                        document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
+                        .forEach(e => e.classList.add("hidden"));
+                    }
 
-						document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
-						.forEach(e => e.classList.remove("hidden"));
+                    renderer.render(this.id, this.dom, this.config);
 
-						if($("[data-control='submit']").length)
-							$("[data-control='submit']").trigger("click");
+                    //tell the rendering engine that I am ready
+                    qtiCustomInteractionContext.notifyReady(this);
 
-						if($("[data-control='move-end']").length)
-							$("[data-control='move-end']").trigger("click");
-						else if($("[data-control='move-forward']").length)
-							$("[data-control='move-forward']").trigger("click");
-						else if($("[data-control='next-section']").length)
-							$("[data-control='next-section']").trigger("click");
-					}
-                }
+                    window.addEventListener('resize', e => {
+                        if(e.target == window && !self.config.fullscreen)
+                            return;
+                        renderer.updateIframe(self.id, self.dom, self.config);
+                    });
 
-                const callbacks = {
-                    "endOfSequence": endOfSequence,
-                    "getScoringResultReturn": scoringResultReturn,
-                    "getTasksStateReturn": scoringResultReturn,
+                    if(typeof ResizeObserver == "function"){
+                        const resizeObserver = new ResizeObserver((entries) => {
+                            // We wrap it in requestAnimationFrame to avoid this error - ResizeObserver loop limit exceeded
+                            window.requestAnimationFrame(() => {
+                                if (!Array.isArray(entries) || !entries.length) {
+                                    return;
+                                }
+                                renderer.updateIframe(self.id, self.dom, self.config);
+                            });                    
+                            // renderer.updateIframe(self.id, self.dom, self.config);
+                        });
+                        resizeObserver.observe(this.dom[0]);
+                    }
+
+                    // window.onresize = e => {
+                    //     renderer.updateIframe(self.id, self.dom, self.config);
+                    // };
+
+
+                    this.on('urlchange', function(url){
+                        self.config.url = url || self.config.url;
+                        renderer.refreshSrc(self.id, self.dom, url);
+                        // self.scaleContents();
+                    });
                     
-                    "traceLogTransmission": (data) => {
-                        if(!!data["traceLogData"]){
-                            this.traceLogs.push(data["traceLogData"]);
+                    this.on('itempropchange', function(width, height, iwidth, iheight){
+                        width = parseInt(width);
+                        height = parseInt(height);
+                        iwidth = parseInt(iwidth);
+                        iheight = parseInt(iheight);
+                        if(
+                            (self.config.width == width && self.config.height == height && self.config.iwidth == iwidth && self.config.iheight == iheight) || 
+                            width < 100 ||
+                            height < 100 ||
+                            iwidth < 100 ||
+                            iheight < 100 ||
+                            width > 2560 ||
+                            height > 1600 ||
+                            iwidth > 2560 ||
+                            iheight > 1600
+                            ){
+                                return;
+                                // throw new Error("Dimensions out of range.")
+                            }
+                            
+                        self.config.width = width || self.config.width;
+                        self.config.height = height || self.config.height;
+                        self.config.iwidth = iwidth || self.config.iwidth;
+                        self.config.iheight = iheight || self.config.iheight;
+                        renderer.updateIframe(self.id, self.dom, self.config);
+                    });
+
+                    this.on('h_alignchange', function(alignh){
+                        self.config.alignh = alignh || self.config.alignh;
+                        renderer.updateIframe(self.id, self.dom, self.config);
+                        // self.scaleContents();
+                    });
+
+                    this.on('fullscreenchange', function(value){
+                        self.config.fullscreen = value ? true : false;
+                        renderer.updateIframe(self.id, self.dom, self.config);
+                    });            
+                    
+
+                    const receive = (type, data) => {
+
+                        console.log("receive", type, data);
+                        // console.log(1);
+                        
+                        const scoringResultReturn = (data) => {
+
+                            if(!data || !data["result"])
+                                return;
+
+                            console.log("getScoringResultReturn", data);
+                            let results = data["result"];
+
+                            // let tmp = Object.keys(data["params"][1]["incidents"])[0];
+                            // let identifier = tmp.substring(tmp.indexOf("/item")+1).replace("/",".").replace("task=","").replace("item=","");
+
+                            
+                            /*  
+                            *   for valid indentifier characters, check:
+                            *   \vendor\qtism\qtism\qtism\common\utils\data\CharacterMap.php        
+                            *   \vendor\qtism\qtism\qtism\runtime\pci\json\Unmarshaller.php
+                            */
+
+                            let classes = [];
+                            let hits = [];
+                            
+                            for (let i of Object.keys(results)) {
+                                if (i.indexOf("hit.") >= 0 && results[i] == true)
+                                    hits.push(i.split(".")[1]);
+                            }
+
+                            for (let i of Object.keys(results)) {
+                                if (i.indexOf("hitClass.") >= 0) {
+                                    let hit = hits.indexOf(i.split(".")[1]);
+                                    if (hit >= 0){
+                                        let text = "";
+                                        if(typeof results["hitText."+hits[hit]] == "string")
+                                            text = results["hitText."+hits[hit]];
+                                        classes.push({ "class": results[i], "hit": hits[hit], "text": text });
+                                        this.response.set(results[i] + ".hit", hits[hit]);
+                                        if(text.length>0)
+                                            // this.response.set(identifier + "." + results[i] + ".hitText", text);
+                                            this.response.set(results[i] + ".hitText", text);
+                                    }
+                                }
+                            }
+
+                            this.responseRaw.push(results);
                         }
-                    }              
-                };
-    
-                if (typeof callbacks[type] !== 'undefined') {
-                    callbacks[type](data);
-                }
-            };
-    
-            // listen to messages from parent frame
-            window.addEventListener('message', event => {
-				if(typeof event?.data != "string")
-					return;
-                if(event.source !== this.iframe.contentWindow)
-                    return;
-                let data = JSON.parse(event.data);
-                receive(data.eventType, data);
-            }, false);
-    };
 
+                        const endOfSequence = () => {
+                            
+                            if(this.config?.navigationLock){
 
-    qtiCustomInteractionContext.register({
-        getTypeIdentifier : function(){
-            return 'ibTaoConnector';
-        },        
-        getInstance :  function(dom, config, state){
-            let instance = new ibTaoConnector($(dom), config.properties);
-            config.onready(instance);
-        },
-        off:  function(event){
-            console.log(event);
-        },
-        on:  function(event){
-            console.log(event);
-        }
+                                document.querySelectorAll("[data-control='next-section'], [data-control='move-end'], [data-control='move-forward'], [data-control='skip-end']")
+                                .forEach(e => e.classList.remove("hidden"));
+
+                                if($("[data-control='submit']").length)
+                                    $("[data-control='submit']").trigger("click");
+
+                                if($("[data-control='move-end']").length)
+                                    $("[data-control='move-end']").trigger("click");
+                                else if($("[data-control='move-forward']").length)
+                                    $("[data-control='move-forward']").trigger("click");
+                                else if($("[data-control='next-section']").length)
+                                    $("[data-control='next-section']").trigger("click");
+                            }                    
+                        }
+
+                        const callbacks = {
+                            "endOfSequence": endOfSequence,
+                            "getScoringResultReturn": scoringResultReturn,
+                            "getTasksStateReturn": scoringResultReturn,
+                            
+                            "traceLogTransmission": (data) => {
+                                if(!!data["traceLogData"]){
+                                    this.traceLogs.push(data["traceLogData"]);
+                                }
+                            }              
+                        };
+            
+                        if (typeof callbacks[type] !== 'undefined') {
+                            callbacks[type](data);
+                        }
+                    };
+            
+                    // listen to messages from parent frame
+                    window.addEventListener('message', event => {
+                        if(typeof event?.data != "string")
+                            return;
+                        if(event.source !== this.iframe.contentWindow)
+                            return;
+                        let data = JSON.parse(event.data);
+                        receive(data.eventType, data);
+                    }, false);
+                },
+
+                getInstance : function(dom, config, state){
+                    this.initialize($(dom), config.properties);
+                    config.onready(this);
+                }            
+            };    
+
+            qtiCustomInteractionContext.register(pciInstance);
+
     });
-});
